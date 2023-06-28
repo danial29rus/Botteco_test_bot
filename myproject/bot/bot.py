@@ -1,29 +1,11 @@
-import logging
-from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from myproject.main import bot, dp, cart
+from myproject.bot.states import QueryForm
+from myproject.bot.utils import get_product_name, calculate_subtotal, calculate_total, faq_data
+from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-import django
-import os
-from myproject.config import TOKEN, DJANGO_SERVER_URL
 from asgiref.sync import sync_to_async
-from myproject.bot.bot_class import QueryForm, FAQForm
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myproject.settings')
-
-django.setup()
-
-from myproject.adminpanelforbot.models import Order, Customer
-
-logging.basicConfig(level=logging.INFO)
-
-bot = Bot(token=TOKEN)
-
-storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
-
-cart = {}
 
 
 @dp.message_handler(Command('start'))
@@ -200,45 +182,6 @@ async def process_address_input(message: types.Message, state: FSMContext):
             "Некорректный формат адреса. Пожалуйста, введите адрес в формате 'Город, Улица, Дом, Квартира:'")
 
 
-def get_product_name(product_id):
-    if product_id == '1':
-        return "Штаны 1"
-    elif product_id == '2':
-        return "Штаны 2"
-    elif product_id == '3':
-        return "Штаны 3"
-    elif product_id == '4':
-        return "Футболка 1"
-    elif product_id == '5':
-        return "Футболка 2"
-    elif product_id == '6':
-        return "Футболка 3"
-    elif product_id == '7':
-        return "Шорты 1"
-    elif product_id == '8':
-        return "Шорты 2"
-    elif product_id == '9':
-        return "Шорты 3"
-
-
-def calculate_subtotal(product_id, quantity):
-    return 100 * quantity
-
-
-def calculate_total():
-    total = 0
-    for product_id, quantity in cart.items():
-        subtotal = calculate_subtotal(product_id, quantity)
-        total += subtotal
-    return total
-
-
-faq_data = {
-    "Сроки доставки": "1-3 недели",
-    "Возврат": "Вещи вернуть нельзя",
-}
-
-
 @dp.message_handler(lambda message: message.text == "FAQ")
 async def start_faq(message: types.Message):
     keyboard = InlineKeyboardMarkup(row_width=1)
@@ -257,9 +200,3 @@ async def handle_faq_click(query: types.CallbackQuery, state: FSMContext):
         await query.message.answer(f"<b>Вопрос:</b> {question}\n\n<b>Ответ:</b> {answer}", parse_mode='HTML')
     else:
         await query.message.answer("Ответ на данный вопрос не найден.")
-
-
-if __name__ == '__main__':
-    from aiogram import executor
-
-    executor.start_polling(dp, skip_updates=True)
