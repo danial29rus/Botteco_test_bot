@@ -1,4 +1,4 @@
-from myproject.main import cart
+from myproject.bot.handlers.catalog import cart
 def get_product_name(product_id):
     if product_id == '1':
         return "Штаны 1"
